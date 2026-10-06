@@ -1,0 +1,49 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = ["firebase-admin"]
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/access-manager.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/class-dashboard.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/class-dashboard.css"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/to-pho.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/deputy-dashboard.css"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

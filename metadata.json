@@ -1,0 +1,6 @@
+{
+  "name": "Sổ Tay GVCN 7N - THCS Võ Thị Sáu",
+  "description": "Sổ tay quản lý học sinh và nề nếp dành cho giáo viên chủ nhiệm lớp 7N - THCS Võ Thị Sáu",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

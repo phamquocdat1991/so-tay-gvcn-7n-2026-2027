@@ -1,0 +1,102 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function membershipPath(appId) {
+      return /databases/$(database)/documents/artifacts/$(appId)/members/$(request.auth.uid);
+    }
+
+    function isActiveMember(appId) {
+      return signedIn()
+        && exists(membershipPath(appId))
+        && get(membershipPath(appId)).data.active == true
+        && validAccessSession(get(membershipPath(appId)).data);
+    }
+
+    function validAccessSession(member) {
+      return !('authMode' in member) || member.authMode != 'simple'
+        || ('accessVersion' in request.auth.token
+          && request.auth.token.accessVersion == member.accessVersion);
+    }
+
+    function hasClassRole(appId, classId, roles) {
+      return hasRole(appId, roles)
+        && (!('authMode' in get(membershipPath(appId)).data)
+          || get(membershipPath(appId)).data.authMode != 'simple'
+          || get(membershipPath(appId)).data.classId == classId);
+    }
+
+    function hasRole(appId, roles) {
+      return isActiveMember(appId)
+        && get(membershipPath(appId)).data.role in roles;
+    }
+
+    function memberStudentId(appId) {
+      return get(membershipPath(appId)).data.studentId;
+    }
+
+    match /artifacts/{appId}/members/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || hasRole(appId, ['gvcn']));
+      allow create, update, delete: if hasRole(appId, ['gvcn']);
+    }
+
+    match /artifacts/{appId}/classes/{classId}/state/{documentId} {
+      // All student officers use the scoped server API; no direct class-state access.
+      allow read: if hasClassRole(appId, classId, ['gvcn', 'gvbm', 'bgh']);
+      allow create: if hasRole(appId, ['gvcn']) && request.resource.data.scoreRevision == 1;
+      allow delete: if false;
+      allow update: if request.resource.data.scoreRevision is int
+        && request.resource.data.scoreRevision == resource.data.get('scoreRevision', 0) + 1
+        && (hasRole(appId, ['gvcn'])
+        || (
+          hasRole(appId, ['gvbm'])
+          && request.resource.data.state.diff(resource.data.state).affectedKeys().hasOnly([
+            'students', 'academicScoresRecords', 'pointsForm', 'currentTab',
+            'reportFilter', 'reportRemarks'
+          ])
+        ));
+    }
+
+    // Contains only a revision signal, never the class roster or permission details.
+    match /artifacts/{appId}/classes/{classId}/permissionSignals/{signalId} {
+      allow read: if hasClassRole(appId, classId, ['gvcn', 'bcs', 'to_pho']);
+      allow create, update: if hasClassRole(appId, classId, ['gvcn'])
+        && request.resource.data.keys().hasOnly(['revision', 'updatedAt'])
+        && request.resource.data.revision is int
+        && request.resource.data.updatedAt is string;
+      allow delete: if false;
+    }
+
+    match /artifacts/{appId}/classes/{classId}/studentViews/{studentId} {
+      allow read: if hasRole(appId, ['gvcn', 'bgh'])
+        || (hasClassRole(appId, classId, ['phhs']) && memberStudentId(appId) == studentId);
+      allow create, update: if hasRole(appId, ['gvcn']);
+      allow delete: if false;
+    }
+
+    match /artifacts/{appId}/classes/{classId}/backups/{backupId} {
+      allow read, create: if hasRole(appId, ['gvcn']);
+      allow update, delete: if false;
+    }
+
+    match /artifacts/{appId}/classes/{classId}/auditLogs/{auditId} {
+      allow read: if hasRole(appId, ['gvcn']);
+      allow create: if hasClassRole(appId, classId, ['gvcn', 'bcs', 'gvbm', 'bgh', 'phhs'])
+        && request.resource.data.actorUid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Only the server's Admin SDK may access credential lookups and rate limits.
+    match /artifacts/{appId}/_accessAccounts/{id} { allow read, write: if false; }
+    match /artifacts/{appId}/_accessLookups/{id} { allow read, write: if false; }
+    match /artifacts/{appId}/_accessLimits/{id} { allow read, write: if false; }
+    match /artifacts/{appId}/classes/{classId}/scoreProposals/{id} {
+      // Proposal scope, immutable approval and score changes are enforced by the API.
+      allow read, write: if false;
+    }
+  }
+}

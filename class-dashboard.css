@@ -1,0 +1,1237 @@
+
+/* =========================================================
+   SHARED PAGE BANNERS V8 — BASE STYLES (V9 overview overrides below)
+   - Custom banner art is a side preview instead of a full-width block.
+   - Keeps the page header informative without consuming the viewport.
+   - Responsive: the preview stacks below the title on small screens.
+   ========================================================= */
+:is(#main-content, #deputy-workspace) .page-banner {
+    --banner-bg: #eff6ff;
+    --banner-accent: #1d4ed8;
+    --banner-soft: #dbeafe;
+    box-sizing: border-box;
+    width: 100%; max-width: 100%; min-width: 0;
+    flex: 0 0 auto;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid rgba(203, 213, 225, .78);
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 92% 18%, color-mix(in srgb, var(--banner-soft) 72%, transparent), transparent 24%),
+        linear-gradient(118deg, var(--banner-bg), #fff 68%);
+    color: #1e293b;
+    box-shadow: 0 10px 28px -24px rgba(15, 23, 42, .38);
+    container-type: inline-size;
+    container-name: page-banner;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-tone="teal"]   { --banner-bg:#f0fdfa; --banner-accent:#0f766e; --banner-soft:#ccfbf1; }
+:is(#main-content, #deputy-workspace) .page-banner[data-tone="violet"] { --banner-bg:#f5f3ff; --banner-accent:#6d28d9; --banner-soft:#ede9fe; }
+:is(#main-content, #deputy-workspace) .page-banner[data-tone="amber"]  { --banner-bg:#fffbeb; --banner-accent:#92400e; --banner-soft:#fef3c7; }
+:is(#main-content, #deputy-workspace) .page-banner[data-tone="rose"]   { --banner-bg:#fff1f2; --banner-accent:#be123c; --banner-soft:#ffe4e6; }
+
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-body {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px 14px;
+    padding: 13px 14px;
+    min-width: 0;
+}
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-icon {
+    width: 46px; height: 46px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid color-mix(in srgb, var(--banner-accent) 12%, transparent);
+    border-radius: 14px;
+    color: var(--banner-accent);
+    background: color-mix(in srgb, var(--banner-soft) 82%, #fff);
+    font-size: 23px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.75);
+}
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-copy { min-width: 0; }
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-kicker {
+    margin: 0 0 2px;
+    color: var(--banner-accent);
+    font-size: 10px;
+    font-weight: 900;
+    line-height: 1.35;
+    letter-spacing: .055em;
+    overflow-wrap: anywhere;
+}
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-title {
+    margin: 0;
+    color: #172033;
+    font-size: clamp(19px, 1.55vw, 25px);
+    font-weight: 900;
+    line-height: 1.15;
+    letter-spacing: -.025em;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-description {
+    margin: 4px 0 0;
+    color: #64748b;
+    font-size: 11.5px;
+    font-weight: 650;
+    line-height: 1.45;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-badges {
+    display: flex; flex-wrap: wrap;
+    gap: 5px;
+    padding: 0;
+    margin: 8px 0 0;
+    list-style: none;
+}
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0; max-width: 100%;
+    padding: 4px 8px;
+    border: 1px solid rgba(203, 213, 225, .72);
+    border-radius: 999px;
+    background: rgba(255,255,255,.78);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.75);
+    font-size: 10.5px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #64748b;
+    overflow-wrap: anywhere;
+}
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-badge strong {
+    color: var(--banner-accent);
+    font-weight: 900;
+}
+
+/* Right-side area: optional artwork + edit controls. */
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-side {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    min-width: 0;
+}
+:is(#main-content, #deputy-workspace) .page-banner.has-image .page-banner-side {
+    width: clamp(285px, 31vw, 405px);
+}
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-media {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    aspect-ratio: 2.2 / 1;
+    overflow: hidden;
+    border: 1px solid rgba(203, 213, 225, .78);
+    border-radius: 13px;
+    background: #081e62;
+    box-shadow: 0 8px 20px -16px rgba(15,23,42,.48);
+}
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-image {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    border-radius: 12px;
+}
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-actions {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 5px;
+    flex: 0 0 auto;
+}
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-width: 38px;
+    min-height: 36px;
+    padding: 7px 9px;
+    border: 1px solid rgba(203, 213, 225, .8);
+    border-radius: 10px;
+    background: rgba(255,255,255,.9);
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1.2;
+    cursor: pointer;
+    box-shadow: 0 5px 14px -12px rgba(15,23,42,.5);
+}
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-action:hover {
+    background: #fff;
+    color: var(--banner-accent);
+    border-color: color-mix(in srgb, var(--banner-accent) 28%, #cbd5e1);
+}
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-action:focus-visible {
+    outline: 2px solid var(--banner-accent);
+    outline-offset: 2px;
+}
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-actions input[hidden] { display: none !important; }
+:is(#main-content, #deputy-workspace) .page-banner .page-banner-details { margin-top: 8px; min-width: 0; }
+:is(#main-content, #deputy-workspace) .page-banner #points-target-badge { color: #334155; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+:is(#main-content, #deputy-workspace) .page-banner #points-target-badge .text-white { color: var(--banner-accent); }
+:is(#main-content, #deputy-workspace) .page-banner #points-target-badge .truncate { white-space: normal; overflow: visible; text-overflow: clip; }
+
+/* A taller custom cover must not squeeze the working area into a fixed viewport. */
+@media screen {
+    #classroom-seating-view { height: auto; min-height: 0; overflow: visible; }
+    #classroom-seating-view .classroom-screen-grid { height: auto; }
+    #points-view-wrapper #points-form-card { max-height: none; }
+}
+
+/* When the available content width becomes narrow, stack artwork below text. */
+@container page-banner (max-width: 820px) {
+    :is(#main-content, #deputy-workspace) .page-banner .page-banner-body {
+        grid-template-columns: 42px minmax(0, 1fr);
+        align-items: start;
+        gap: 10px;
+        padding: 12px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner .page-banner-icon {
+        width: 42px; height: 42px; border-radius: 12px; font-size: 21px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner .page-banner-side {
+        grid-column: 1 / -1;
+        width: 100% !important;
+        align-items: stretch;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner .page-banner-media {
+        max-width: 520px;
+        aspect-ratio: 2.35 / 1;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner .page-banner-actions {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 640px) {
+    :is(#main-content, #deputy-workspace) .page-banner { border-radius: 15px; }
+    :is(#main-content, #deputy-workspace) .page-banner .page-banner-body {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 11px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner .page-banner-icon { display: none; }
+    :is(#main-content, #deputy-workspace) .page-banner .page-banner-title { font-size: 19px; }
+    :is(#main-content, #deputy-workspace) .page-banner .page-banner-description { font-size: 11px; }
+    :is(#main-content, #deputy-workspace) .page-banner .page-banner-side {
+        grid-column: 1;
+        flex-direction: column;
+        gap: 6px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner .page-banner-media {
+        max-width: none;
+        aspect-ratio: 2.15 / 1;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner .page-banner-actions {
+        width: 100%;
+        flex-direction: row;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner .page-banner-action {
+        flex: 1 1 0;
+        min-height: 40px;
+    }
+}
+
+@media print { :is(#main-content, #deputy-workspace) .page-banner { display: none !important; } }
+
+
+/* =========================================================
+   MAIN OVERVIEW HERO V12 — COMPACT PASTEL PINK CHIBI BANNER
+   - Soft pink theme, sweet modern classroom aesthetic.
+   - Default illustration is inline SVG; custom upload replaces the visual block.
+   - Buttons stay smart and responsive across desktop/mobile.
+   ========================================================= */
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] {
+    position: relative;
+    width: 100%;
+    max-width: none;
+    padding: 12px;
+    overflow: visible;
+    border: 1px solid #e5e7eb;
+    border-radius: 24px;
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+    box-shadow: 0 16px 32px -24px rgba(15, 23, 42, .22);
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"]::before,
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"]::after { display: none; }
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-body {
+    display: block;
+    padding: 0;
+    min-height: 0;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-icon,
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-copy,
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-side,
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-media {
+    display: none;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 28px;
+    min-height: 214px;
+    padding: 18px 22px 48px;
+    background:
+        radial-gradient(circle at 12% 100%, rgba(255,255,255,.72), transparent 20%),
+        radial-gradient(circle at 88% 18%, rgba(255,255,255,.35), transparent 18%),
+        linear-gradient(180deg, #f9cbd8 0%, #f8dbe5 32%, #fce7f3 100%);
+    border: 1px solid rgba(244, 114, 182, .18);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 20px 30px -28px rgba(244, 114, 182, .38);
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card.has-custom-image {
+    padding: 0 0 48px;
+    background: #fce7f3;
+    border-color: rgba(244, 114, 182, .22);
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card.has-custom-image::before,
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card.has-custom-image::after {
+    display: none;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-full-image {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border-radius: inherit;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-default-content {
+    position: relative;
+    z-index: 2;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card.has-custom-image .overview-hero-default-content {
+    display: none;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card::before {
+    content: "";
+    position: absolute;
+    inset: auto auto 0 0;
+    width: 100%;
+    height: 60px;
+    background:
+        radial-gradient(circle at 10% 100%, rgba(255,255,255,.85) 0 22%, transparent 23%),
+        radial-gradient(circle at 30% 100%, rgba(255,255,255,.72) 0 18%, transparent 19%),
+        radial-gradient(circle at 55% 100%, rgba(255,255,255,.82) 0 20%, transparent 21%),
+        radial-gradient(circle at 82% 100%, rgba(255,255,255,.72) 0 18%, transparent 19%);
+    opacity: .75;
+    pointer-events: none;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        radial-gradient(circle, rgba(255,255,255,.55) 1px, transparent 1.6px),
+        linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
+    background-size: 26px 26px, 26px 26px, 26px 26px;
+    opacity: .14;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-chip {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: min(100%, 420px);
+    min-height: 34px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #fb87a9 0%, #f472b6 100%);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    box-shadow: 0 10px 22px -18px rgba(219, 39, 119, .85), inset 0 1px 0 rgba(255,255,255,.32);
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: minmax(260px, 1.1fr) minmax(240px, .84fr) minmax(180px, .5fr);
+    align-items: center;
+    gap: 14px;
+    margin-top: 12px;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-copy {
+    min-width: 0;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-title {
+    margin: 0;
+    color: #f2558d;
+    font-size: clamp(32px, 3vw, 58px);
+    font-weight: 1000;
+    line-height: .95;
+    letter-spacing: -.045em;
+    text-transform: uppercase;
+    text-shadow: 0 3px 0 rgba(255,255,255,.95), 0 12px 24px rgba(244, 114, 182, .22);
+    -webkit-text-stroke: 4px rgba(255,255,255,.92);
+    paint-order: stroke fill;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-subtitle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    min-height: 36px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #fde266 0%, #f8d54a 100%);
+    color: #4c1d2f;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: .02em;
+    box-shadow: 0 10px 18px -16px rgba(202, 138, 4, .68), inset 0 1px 0 rgba(255,255,255,.58);
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-slogan {
+    margin: 10px 0 0;
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 36px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.88);
+    border: 1px solid rgba(244, 114, 182, .18);
+    color: #f06292;
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1.35;
+    letter-spacing: .02em;
+    box-shadow: 0 16px 26px -26px rgba(15, 23, 42, .45);
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-visual {
+    position: relative;
+    align-self: end;
+    min-height: 148px;
+    border-radius: 24px;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-default-art {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-default-art svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-image {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,.6);
+    box-shadow: 0 18px 32px -28px rgba(244, 114, 182, .55);
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox {
+    justify-self: end;
+    align-self: start;
+    width: min(100%, 230px);
+    padding: 14px 16px 16px;
+    border-radius: 24px;
+    background: linear-gradient(180deg, rgba(251, 146, 185, .62), rgba(244, 114, 182, .48));
+    border: 2px dashed rgba(255,255,255,.62);
+    text-align: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 16px 26px -24px rgba(236, 72, 153, .42);
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox span {
+    display: block;
+    color: #facc15;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox strong {
+    display: block;
+    margin-top: 6px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 900;
+    line-height: 1.4;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions {
+    position: absolute;
+    right: 16px;
+    bottom: 12px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-action {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(244, 114, 182, .18);
+    background: rgba(255,255,255,.95);
+    color: #4b5563;
+    font-size: 14px;
+    font-weight: 900;
+    border-radius: 999px;
+    box-shadow: 0 10px 20px -18px rgba(15, 23, 42, .45);
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions .page-banner-action.upload,
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions .page-banner-action.reset {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions .page-banner-action.upload { color: #2563eb; }
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions .page-banner-action.reset { color: #ec4899; }
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-action:hover {
+    background: #fff;
+    color: #ec4899;
+    border-color: rgba(244, 114, 182, .34);
+    transform: translateY(-1px);
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-action:disabled {
+    opacity: .55;
+    cursor: default;
+    transform: none;
+}
+:is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-action i {
+    font-size: 18px;
+}
+@container page-banner (max-width: 1100px) {
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-grid {
+        grid-template-columns: minmax(220px, 1fr) minmax(220px, .8fr);
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox {
+        grid-column: 1 / -1;
+        justify-self: start;
+        width: auto;
+        max-width: 280px;
+    }
+}
+@media (max-width: 860px) {
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] {
+        padding: 10px;
+        border-radius: 24px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card {
+        min-height: 0;
+        padding: 16px 16px 52px;
+        border-radius: 22px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-chip {
+        font-size: 11px;
+        min-height: 34px;
+        padding: 8px 14px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-grid {
+        grid-template-columns: 1fr;
+        gap: 11px;
+        margin-top: 10px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-title {
+        font-size: clamp(30px, 8vw, 48px);
+        -webkit-text-stroke: 3px rgba(255,255,255,.92);
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-subtitle {
+        margin-top: 9px;
+        font-size: 11.5px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-slogan {
+        margin-top: 9px;
+        font-size: 10.5px;
+        border-radius: 18px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-visual {
+        min-height: 0;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox {
+        justify-self: start;
+        width: min(100%, 260px);
+        padding: 14px 16px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox strong {
+        font-size: 16px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions {
+        right: 12px;
+        bottom: 10px;
+    }
+}
+
+/* =========================================================
+   V14 HEIGHT COMPRESSION — keep full width, ~1/2 desktop height
+   ========================================================= */
+@media (min-width: 861px) {
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] {
+        width: 100% !important;
+        max-width: none !important;
+        padding: 6px !important;
+        border-radius: 20px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card {
+        min-height: 0;
+        height: 128px;
+        padding: 8px 12px 10px;
+        border-radius: 18px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card::before {
+        height: 34px;
+        opacity: .58;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-chip {
+        min-height: 22px;
+        padding: 4px 10px;
+        gap: 5px;
+        font-size: 9px;
+        line-height: 1;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-grid {
+        grid-template-columns: minmax(285px, 1.16fr) minmax(230px, .74fr) minmax(155px, .42fr);
+        gap: 10px;
+        margin-top: 5px;
+        height: 88px;
+        align-items: center;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-copy {
+        align-self: center;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-title {
+        font-size: clamp(27px, 2.25vw, 40px);
+        line-height: .9;
+        -webkit-text-stroke: 2.5px rgba(255,255,255,.92);
+        text-shadow: 0 2px 0 rgba(255,255,255,.95), 0 7px 14px rgba(244,114,182,.18);
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-subtitle {
+        min-height: 22px;
+        margin-top: 4px;
+        padding: 4px 10px;
+        gap: 5px;
+        font-size: 9px;
+        line-height: 1.05;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-slogan {
+        min-height: 22px;
+        margin-top: 4px;
+        padding: 4px 9px;
+        gap: 4px;
+        font-size: 8.3px;
+        line-height: 1.1;
+        white-space: nowrap;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-visual {
+        align-self: center;
+        min-height: 0;
+        height: 86px;
+        overflow: hidden;
+        border-radius: 16px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-default-art,
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-default-art svg {
+        width: 100%;
+        height: 100%;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-default-art svg {
+        object-fit: contain;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-image {
+        border-radius: 16px;
+        object-fit: cover;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox {
+        width: min(100%, 180px);
+        min-height: 72px;
+        padding: 9px 10px;
+        border-radius: 16px;
+        align-self: center;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox span {
+        font-size: 8.5px;
+        line-height: 1.1;
+        letter-spacing: .055em;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox strong {
+        margin-top: 4px;
+        font-size: 11px;
+        line-height: 1.25;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions {
+        right: 10px;
+        bottom: 8px;
+        gap: 6px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-action,
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions .page-banner-action.upload,
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions .page-banner-action.reset {
+        width: 34px;
+        min-width: 34px;
+        height: 34px;
+        min-height: 34px;
+        flex: 0 0 34px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-action i {
+        font-size: 15px;
+    }
+}
+
+/* Tablet: keep full width and substantially reduce height without crushing content. */
+@media (min-width: 561px) and (max-width: 860px) {
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] {
+        width: 100% !important;
+        max-width: none !important;
+        padding: 7px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card {
+        padding: 11px 12px 45px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(180px, .72fr);
+        gap: 9px;
+        margin-top: 7px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox {
+        grid-column: 1 / -1;
+        width: auto;
+        max-width: 220px;
+        padding: 8px 12px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-visual {
+        max-height: 118px;
+        overflow: hidden;
+    }
+}
+
+@media (max-width: 560px) {
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] {
+        padding: 8px;
+        border-radius: 20px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card {
+        padding: 13px 12px 56px;
+        border-radius: 18px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-chip {
+        max-width: 100%;
+        font-size: 10px;
+        line-height: 1.3;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-title {
+        font-size: clamp(24px, 9vw, 34px);
+        -webkit-text-stroke: 2.5px rgba(255,255,255,.92);
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-subtitle {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+        padding: 9px 14px;
+        font-size: 11px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-slogan {
+        display: flex;
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 16px;
+        font-size: 10px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox {
+        width: 100%;
+        max-width: none;
+        border-radius: 18px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox span {
+        font-size: 10px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox strong {
+        font-size: 14px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions {
+        left: auto;
+        right: 10px;
+        bottom: 9px;
+        justify-content: flex-end;
+        gap: 7px;
+    }
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions .page-banner-action.upload,
+    :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions .page-banner-action.reset {
+        width: 42px;
+        min-width: 42px;
+        height: 42px;
+        min-height: 42px;
+        flex: 0 0 42px;
+        padding: 0;
+    }
+}
+
+
+/* FINAL OVERRIDE V15
+   Desktop: always full width and compact horizontal banner.
+   Placed last so older container/media rules cannot re-stack or narrow the hero. */
+@media (min-width: 861px) {
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 8px !important;
+    border-radius: 22px !important;
+    box-sizing: border-box !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-body {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    display: block !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    height: 190px !important;
+    min-height: 190px !important;
+    max-height: 190px !important;
+    padding: 12px 16px !important;
+    border-radius: 20px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-chip {
+    position: absolute !important;
+    top: 12px !important;
+    left: 16px !important;
+    z-index: 5 !important;
+    min-height: 28px !important;
+    max-width: 40% !important;
+    padding: 6px 12px !important;
+    font-size: 10px !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-grid {
+    display: grid !important;
+    grid-template-columns: minmax(340px, 1.12fr) minmax(300px, .82fr) minmax(190px, .46fr) !important;
+    grid-template-rows: 1fr !important;
+    align-items: center !important;
+    gap: 16px !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding-top: 30px !important;
+    box-sizing: border-box !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-copy {
+    min-width: 0 !important;
+    align-self: center !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-title {
+    margin: 0 !important;
+    font-size: clamp(30px, 2.6vw, 46px) !important;
+    line-height: .94 !important;
+    white-space: nowrap !important;
+    -webkit-text-stroke: 3px rgba(255,255,255,.92) !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-subtitle {
+    min-height: 30px !important;
+    margin-top: 7px !important;
+    padding: 6px 12px !important;
+    font-size: 10.5px !important;
+    line-height: 1.05 !important;
+    white-space: nowrap !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-slogan {
+    min-height: 30px !important;
+    max-width: 100% !important;
+    margin-top: 7px !important;
+    padding: 6px 12px !important;
+    font-size: 9.5px !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-visual {
+    min-height: 0 !important;
+    height: 132px !important;
+    max-height: 132px !important;
+    align-self: center !important;
+    overflow: hidden !important;
+    border-radius: 16px !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-default-art,
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-default-art svg {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 132px !important;
+    display: block !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-image {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 16px !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    justify-self: stretch !important;
+    align-self: center !important;
+    width: 100% !important;
+    max-width: 230px !important;
+    min-height: 92px !important;
+    padding: 12px !important;
+    border-radius: 18px !important;
+    box-sizing: border-box !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox span {
+    font-size: 9px !important;
+    line-height: 1.15 !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox strong {
+    margin-top: 6px !important;
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions {
+    right: 12px !important;
+    bottom: 10px !important;
+    gap: 6px !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-action,
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions .page-banner-action.upload,
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions .page-banner-action.reset {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    flex: 0 0 34px !important;
+    padding: 0 !important;
+  }
+}
+
+/* Tablet: still full width; slightly taller to preserve legibility. */
+@media (min-width: 641px) and (max-width: 860px) {
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card {
+    min-height: 0 !important;
+    height: auto !important;
+  }
+}
+
+/* Mobile remains full width and vertical; no inherited half-width rule. */
+@media (max-width: 640px) {
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+}
+
+
+/* =========================================================
+   OVERVIEW HERO V16 — COMPACT WIDE 170PX
+   Final override: keeps desktop banner full width, low-profile,
+   and aligns both image controls as icon-only buttons at bottom-right.
+   ========================================================= */
+@media (min-width: 861px) {
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 5px !important;
+    border-radius: 19px !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-body {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card {
+    position: relative !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 170px !important;
+    min-height: 170px !important;
+    max-height: 170px !important;
+    padding: 10px 14px !important;
+    border-radius: 17px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card::before {
+    height: 40px !important;
+    opacity: .58 !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-chip {
+    position: absolute !important;
+    top: 9px !important;
+    left: 14px !important;
+    z-index: 6 !important;
+    min-height: 24px !important;
+    max-width: 38% !important;
+    padding: 5px 10px !important;
+    gap: 5px !important;
+    font-size: 9px !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-grid {
+    display: grid !important;
+    grid-template-columns: minmax(330px, 1.16fr) minmax(300px, .92fr) minmax(180px, .48fr) !important;
+    grid-template-rows: 1fr !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 25px 0 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-copy {
+    min-width: 0 !important;
+    align-self: center !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-title {
+    margin: 0 !important;
+    font-size: clamp(27px, 2.35vw, 41px) !important;
+    line-height: .92 !important;
+    white-space: nowrap !important;
+    -webkit-text-stroke: 2.6px rgba(255,255,255,.93) !important;
+    text-shadow: 0 2px 0 rgba(255,255,255,.9), 0 8px 18px rgba(244,114,182,.18) !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-subtitle {
+    min-height: 26px !important;
+    margin-top: 5px !important;
+    padding: 5px 10px !important;
+    gap: 5px !important;
+    font-size: 9px !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-slogan {
+    min-height: 26px !important;
+    max-width: 100% !important;
+    margin-top: 5px !important;
+    padding: 5px 10px !important;
+    gap: 5px !important;
+    font-size: 8.4px !important;
+    line-height: 1.05 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-visual {
+    min-height: 0 !important;
+    height: 122px !important;
+    max-height: 122px !important;
+    align-self: center !important;
+    overflow: hidden !important;
+    border-radius: 14px !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-default-art,
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-default-art svg {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 122px !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-image {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    border-radius: 14px !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    justify-self: stretch !important;
+    align-self: center !important;
+    width: 100% !important;
+    max-width: 215px !important;
+    min-height: 78px !important;
+    padding: 9px 10px !important;
+    border-radius: 15px !important;
+    box-sizing: border-box !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox span {
+    font-size: 8px !important;
+    line-height: 1.1 !important;
+    letter-spacing: .055em !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-yearbox strong {
+    margin-top: 5px !important;
+    font-size: 11px !important;
+    line-height: 1.22 !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions {
+    position: absolute !important;
+    right: 9px !important;
+    bottom: 7px !important;
+    z-index: 8 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 5px !important;
+    width: auto !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-action,
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions .page-banner-action.upload,
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions .page-banner-action.reset {
+    width: 31px !important;
+    min-width: 31px !important;
+    height: 31px !important;
+    min-height: 31px !important;
+    flex: 0 0 31px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 8px 16px -13px rgba(15,23,42,.5) !important;
+  }
+
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-action i {
+    font-size: 14px !important;
+    line-height: 1 !important;
+  }
+}
+
+/* Tablet: still a wide, compact banner but with a little more breathing room. */
+@media (min-width: 641px) and (max-width: 860px) {
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 6px !important;
+  }
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card {
+    min-height: 184px !important;
+    padding: 10px 12px 42px !important;
+  }
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions {
+    right: 9px !important;
+    bottom: 8px !important;
+    gap: 6px !important;
+  }
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-action,
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions .page-banner-action.upload,
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions .page-banner-action.reset {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    flex: 0 0 34px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+  }
+}
+
+/* Mobile: keep the existing vertical reflow, but remove excess outer whitespace and keep controls icon-only. */
+@media (max-width: 640px) {
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 6px !important;
+  }
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-card {
+    padding-bottom: 50px !important;
+  }
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions {
+    right: 9px !important;
+    bottom: 8px !important;
+    gap: 6px !important;
+  }
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .page-banner-action,
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions .page-banner-action.upload,
+  :is(#main-content, #deputy-workspace) .page-banner[data-page-banner="overview"] .overview-hero-actions .page-banner-action.reset {
+    width: 38px !important;
+    min-width: 38px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    flex: 0 0 38px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+  }
+}
+
+/* Shared GVCN / student card component. Same markup, palette and spacing. */
+:is(#main-content,#deputy-workspace) .dashboard-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+:is(#main-content,#deputy-workspace) button.dashboard-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:12px;width:100%;min-width:0;min-height:155px;padding:20px;border:1px solid #ffffff40;border-radius:32px;background:linear-gradient(135deg,var(--card-from),var(--card-to));color:#fff;text-align:left;box-shadow:0 6px 16px #1e293b15;overflow:hidden;cursor:pointer;transition:transform .2s}
+:is(#main-content,#deputy-workspace) .dashboard-card:hover{transform:translateY(-4px)}
+:is(#main-content,#deputy-workspace) .dashboard-card:focus-visible{outline:3px solid #4f46e5;outline-offset:3px}
+:is(#main-content,#deputy-workspace) .dashboard-card strong{max-width:calc(100% - 46px);font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;line-height:1.5}
+:is(#main-content,#deputy-workspace) .dashboard-card b{font-size:32px;font-weight:900;line-height:1.1;overflow-wrap:anywhere}
+:is(#main-content,#deputy-workspace) .dashboard-card small{font-size:11px;font-weight:650;line-height:1.5;color:#ffffffe8}
+:is(#main-content,#deputy-workspace) .dashboard-card svg{position:absolute;right:20px;top:20px;width:36px;height:36px;padding:8px;border-radius:12px;background:#ffffff33;color:#fff}
+.dashboard-card[data-tone=blue]{--card-from:#2563eb;--card-to:#4338ca}.dashboard-card[data-tone=violet]{--card-from:#4f46e5;--card-to:#6d28d9}.dashboard-card[data-tone=amber]{--card-from:#f59e0b;--card-to:#ca8a04}.dashboard-card[data-tone=orange]{--card-from:#f97316;--card-to:#d97706}.dashboard-card[data-tone=green]{--card-from:#059669;--card-to:#0f766e}.dashboard-card[data-tone=rose]{--card-from:#f43f5e;--card-to:#db2777}
+@media(max-width:1023px){:is(#main-content,#deputy-workspace) .dashboard-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:767px){:is(#main-content,#deputy-workspace) .dashboard-card-grid{grid-template-columns:minmax(0,1fr)}:is(#main-content,#deputy-workspace) button.dashboard-card{min-height:138px;padding:18px;border-radius:24px}}
+@media(prefers-reduced-motion:reduce){:is(#main-content,#deputy-workspace) .dashboard-card{transition:none;transform:none}}
+
+.class-dashboard-header{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#ffffffed;backdrop-filter:blur(16px);border-bottom:1px solid #e2e8f0;box-shadow:0 1px 4px #0f172a08;min-height:72px}.class-dashboard-header button{min-height:44px;border-radius:16px}

@@ -1,0 +1,35 @@
+{
+  "name": "so-tay-gvcn-7n",
+  "version": "1.1.5",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "postinstall": "node scripts/patch-firebase-runtime.mjs",
+    "pretest": "node scripts/patch-firebase-runtime.mjs",
+    "dev": "node server.js",
+    "check": "node scripts/build.mjs --check",
+    "build": "node scripts/build.mjs",
+    "start": "node server.js",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "14.3.0"
+  },
+  "overrides": {
+    "firebase-admin@14.3.0": {
+      "jwks-rsa": "4.1.0"
+    },
+    "gaxios@6.7.1": {
+      "uuid": "11.1.1"
+    },
+    "teeny-request@9.0.0": {
+      "uuid": "11.1.1"
+    }
+  },
+  "devDependencies": {
+    "linkedom": "0.18.13"
+  }
+}

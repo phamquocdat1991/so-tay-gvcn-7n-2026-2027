@@ -1,0 +1,25 @@
+BẢN SỬA LUỒNG MỞ SỔ TAY LỚP / BAN CÁN SỰ
+
+Gói này là bản vá cho dự án hiện có, KHÔNG phải toàn bộ website.
+
+1. Sao lưu hai tệp hiện tại index.html và firebase-secure.js.
+2. Thay đồng thời hai tệp này bằng hai tệp cùng tên trong gói, tại thư mục chứa index.html của dự án.
+3. Giữ nguyên runtime-config.js, access-manager.js, deputy-permissions.js, Netlify Functions, cấu hình triển khai và các tệp còn lại.
+4. Triển khai lại TOÀN BỘ dự án theo quy trình đang sử dụng. Không kéo thả riêng gói bản vá này lên Netlify thành một website mới hoặc bản triển khai chỉ có hai tệp.
+5. Mở lại website, tải lại trang và đăng nhập bằng tài khoản Ban cán sự đã được cấp. Không xóa dữ liệu trình duyệt để xử lý lỗi này.
+
+Nội dung sửa:
+- Sửa giá trị mặc định null bị chuyển thành 0 làm thời gian thử lại rơi xuống mức 250 ms (đọc) và 100 ms (ghi).
+- Vẽ lại giao diện khi nhận dữ liệu không đổi nhưng màn hình vẫn đang chờ; giữ giao diện đã mở khi kết nối lại trong nền.
+- Giữ thông báo lỗi khi đang tự kết nối lại, tránh vòng quay che lỗi.
+- Giới hạn bước đọc membership và kiểm tra token trong 15 giây; hiển thị mã lỗi khi thất bại.
+- Chặn kết quả xác thực cũ ghi đè phiên mới.
+- Phát hiện tài liệu dữ liệu lớp thiếu trường state hợp lệ.
+- Sửa fallback khởi động không ghi đè màn hình đăng nhập đã xác định chưa có quyền.
+
+Đã kiểm tra cú pháp của các script và 38 tình huống mô phỏng. Chưa kiểm thử với tài khoản Firebase thật; chưa xác định chắc chắn lỗi máy chủ của phiên trong ảnh. Không thay Security Rules, tài khoản hoặc cấp thêm quyền.
+
+Nếu vẫn lỗi:
+- Chờ ít nhất 25 giây và chụp thông báo/mã lỗi.
+- Mở F12 > Console và chụp dòng lỗi đỏ đầu tiên. Che thông tin cá nhân; không gửi mật khẩu/token.
+- Gửi quy tắc Firestore đang áp dụng và mã nguồn Netlify Function simple-login nếu mã lỗi liên quan xác thực/phân quyền. Không gửi khóa tài khoản dịch vụ.
