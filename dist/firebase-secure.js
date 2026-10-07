@@ -202,6 +202,14 @@ if (!window.secureMode) {
         return runTransaction(db, async transaction => {
           const current = await transaction.get(stateRef);
           const scoreRevision = Number(current.data()?.scoreRevision) || 0;
+          // A retry after a lost response is already successful when the complete
+          // server state matches. Preserve array order, but ignore object key order.
+          const canonical = value => Array.isArray(value) ? value.map(canonical)
+            : value && typeof value === 'object'
+              ? Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value;
+          if (current.data()?.state && JSON.stringify(canonical(current.data().state)) === JSON.stringify(canonical(state))) {
+            return { scoreRevision, alreadyCommitted: true };
+          }
           if (scoreRevision !== expectedRevision) {
             window.scoreSyncConflict = { state: current.data().state, revision: scoreRevision };
             const error = new Error('Điểm vừa được cập nhật từ thiết bị khác. Bản nhập được giữ lại; hãy tải dữ liệu mới trước khi lưu để tránh ghi đè điểm.');
@@ -213,6 +221,97 @@ if (!window.secureMode) {
             transaction.set(permissionSignalRef, {revision:scoreRevision + 1,updatedAt:new Date().toISOString()});
           }
           return { scoreRevision: scoreRevision + 1 };
+        });
+      },
+      saveStateTransactional: (clientState, options = {}) => {
+        const expectedRevision = Number(options?.expectedRevision ?? window.cloudStateScoreRevision) || 0;
+        return runTransaction(db, async transaction => {
+          const current = await transaction.get(stateRef);
+          const serverData = current.data() || {};
+          const serverState = serverData.state;
+          const scoreRevision = Number(serverData.scoreRevision) || 0;
+
+          const canonical = value => Array.isArray(value) ? value.map(canonical)
+            : value && typeof value === 'object'
+              ? Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value;
+
+          if (serverState && JSON.stringify(canonical(serverState)) === JSON.stringify(canonical(clientState))) {
+            return { scoreRevision, alreadyCommitted: true };
+          }
+
+          let stateToSave = clientState;
+          let merged = false;
+
+          if (scoreRevision !== expectedRevision) {
+            if (serverState && typeof serverState === 'object' && clientState && typeof clientState === 'object') {
+              try {
+                const mergedStudents = (clientState.students || []).map(cs => {
+                  const ss = (serverState.students || []).find(s => String(s.id) === String(cs.id));
+                  if (!ss) return cs;
+                  const serverHistory = Array.isArray(ss.history) ? ss.history : [];
+                  const clientHistory = Array.isArray(cs.history) ? cs.history : [];
+                  const serverHistIds = new Set(serverHistory.map(h => String(h.id)));
+                  const clientHistIds = new Set(clientHistory.map(h => String(h.id)));
+
+                  const newClientEntries = clientHistory.filter(h => !serverHistIds.has(String(h.id)));
+                  const newServerEntries = serverHistory.filter(h => !clientHistIds.has(String(h.id)));
+
+                  if (newClientEntries.length > 0 || newServerEntries.length > 0) {
+                    merged = true;
+                    const mergedHist = [...serverHistory, ...newClientEntries];
+                    const clientPointsDelta = newClientEntries.reduce((sum, h) => sum + (Number(h.points) || 0), 0);
+                    const clientStarsDelta = newClientEntries.reduce((sum, h) => sum + (Number(h.actualStars ?? h.points) || 0), 0);
+                    const basePoints = Number(ss.points) || 0;
+                    const baseStars = Number(ss.stars) || 0;
+                    return {
+                      ...cs,
+                      points: basePoints + clientPointsDelta,
+                      stars: Math.max(0, baseStars + clientStarsDelta),
+                      history: mergedHist
+                    };
+                  }
+                  return cs;
+                });
+
+                const clientStudentIds = new Set((clientState.students || []).map(s => String(s.id)));
+                (serverState.students || []).forEach(ss => {
+                  if (!clientStudentIds.has(String(ss.id))) mergedStudents.push(ss);
+                });
+
+                stateToSave = {
+                  ...serverState,
+                  ...clientState,
+                  students: mergedStudents,
+                  academicScoresRecords: clientState.academicScoresRecords || serverState.academicScoresRecords || [],
+                  attendanceRecords: { ...(serverState.attendanceRecords || {}), ...(clientState.attendanceRecords || {}) },
+                  dutyRoster: clientState.dutyRoster || serverState.dutyRoster
+                };
+              } catch (mergeError) {
+                console.warn('Auto-merge failed, flagging conflict:', mergeError);
+                window.scoreSyncConflict = { state: serverState, revision: scoreRevision };
+                const error = new Error('Điểm vừa được cập nhật từ thiết bị khác. Bản nhập được giữ lại; hãy tải dữ liệu mới trước khi lưu để tránh ghi đè điểm.');
+                error.code = 'cloud/revision-conflict';
+                throw error;
+              }
+            } else {
+              window.scoreSyncConflict = { state: serverState, revision: scoreRevision };
+              const error = new Error('Điểm vừa được cập nhật từ thiết bị khác. Bản nhập được giữ lại; hãy tải dữ liệu mới trước khi lưu để tránh ghi đè điểm.');
+              error.code = 'cloud/revision-conflict';
+              throw error;
+            }
+          }
+
+          const nextRev = scoreRevision + 1;
+          transaction.set(stateRef, {
+            state: stateToSave,
+            scoreRevision: nextRev,
+            updatedAt: new Date().toISOString(),
+            updatedBy: auth.currentUser?.uid || ''
+          });
+          if (window.cloudMembership?.role === 'gvcn') {
+            transaction.set(permissionSignalRef, { revision: nextRev, updatedAt: new Date().toISOString() });
+          }
+          return { scoreRevision: nextRev, merged, state: stateToSave };
         });
       },
       saveStudentViews: async views => {

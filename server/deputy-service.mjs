@@ -4,8 +4,21 @@ import { AccessError, studentView, officerFor } from './access-model.mjs';
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const RATINGS = { good: [5, 'Tốt'], done: [0, 'Đạt'], incomplete: [-3, 'Chưa đạt'], absent: [-5, 'Nghỉ trực'] };
 const fail = (message = 'Bạn không có quyền thực hiện thao tác này.', code = 'ACCESS_DENIED') => { const error = new AccessError(403, message); error.code = code; throw error; };
-const historyWeek = h => Number.isFinite(Date.parse(h.date)) ? weekOf(new Date(Date.parse(h.date) + 7*3600000).toISOString().slice(0,10)) : null;
-export const scoreVersion = h => JSON.stringify([h.points,h.reason,h.category,h.updatedAt || h.date,Number(h.editRevision)||0]);
+const historyWeek = h => (h && Number.isFinite(Date.parse(h.date))) ? weekOf(new Date(Date.parse(h.date) + 7*3600000).toISOString().slice(0,10)) : null;
+export const scoreVersion = h => h ? JSON.stringify([h.points,h.reason,h.category,h.updatedAt || h.date,Number(h.editRevision)||0]) : '';
+export function normalizeGroup(g) {
+  if (g === null || g === undefined) return '';
+  return String(g).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/^to[-_\s]*/i, '').trim();
+}
+export function isSameGroup(a, b) {
+  if (a === null || a === undefined || b === null || b === undefined) return false;
+  const sa = String(a).trim().toLowerCase();
+  const sb = String(b).trim().toLowerCase();
+  if (sa === sb) return true;
+  const na = normalizeGroup(a);
+  const nb = normalizeGroup(b);
+  return na !== '' && na === nb;
+}
 export function weekOf(date) {
   const d = new Date(`${date}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7);
@@ -42,7 +55,7 @@ export function applyAttendance(state, student, id, status, today, stamp, perfor
   record[id]=status;
 }
 export function projectGroup(state, groupId) {
-  const students = (state.students || []).filter(s => (groupId === null || String(s.group) === groupId));
+  const students = (state.students || []).filter(s => (groupId === null || isSameGroup(s.group, groupId)));
   const ids = new Set(students.map(s => String(s.id)));
   const duties = [];
   for (const [week, value] of Object.entries(state.dutyRoster?.weeks || {})) {
@@ -82,12 +95,12 @@ export function createDeputyService({ db, auth, appId, classId, clock = Date.now
       if (member.authMode === 'simple' && member.accessVersion !== actor.accessVersion) fail('Quyền đã thay đổi. Hãy đăng nhập lại.', 'SESSION_CHANGED');
       const assigned = state.students?.find(s => String(s.id) === String(member.studentId));
       const roles = officer ? (state.officerRoles || []).filter(r => r.status === 'active' && String(r.assignedStudentId) === String(member.studentId) && r.actions?.view === true) : [];
-      const usable = role => ['all','group'].includes(role.scope) && (!(role.scope === 'group' || /^to-truong/.test(role.key || '')) || (role.groupName && String(assigned?.group) === role.groupName));
-      // Never merge scopes. Each request uses exactly one teacher-assigned role.
-      const policy = officer ? (input.roleKey ? roles.find(r => r.key === input.roleKey) : roles.find(usable) || roles[0]) : null;
+      const usable = role => ['all','group'].includes(role.scope) && (!(role.scope === 'group' || /^to-truong/.test(role.key || '')) || (role.groupName && isSameGroup(assigned?.group, role.groupName)));
+      // Never merge scopes. Each request uses exactly one teacher-assigned role. Prioritize scoring-capable roles when roleKey is omitted.
+      const policy = officer ? (input.roleKey ? roles.find(r => r.key === input.roleKey) : (roles.find(r => usable(r) && r.actions?.add === true) || roles.find(usable) || roles[0])) : null;
       if (officer && (!assigned || !policy || policy.actions?.view !== true)) fail('Chức vụ đã bị khóa hoặc chưa được cấp quyền xem.', 'ROLE_UNAVAILABLE');
       const groupId = deputy ? member.groupId : officer && (policy.scope === 'group' || /^to-truong/.test(policy.key || '')) ? policy.groupName : null;
-      if ((deputy || officer && (policy.scope === 'group' || /^to-truong/.test(policy.key || ''))) && (!groupId || !assigned || String(assigned.group) !== groupId)) fail('Phân công tổ chưa khớp với danh sách lớp. GVCN cần kiểm tra lại tổ và học sinh được phân công.', 'ASSIGNMENT_CHANGED');
+      if ((deputy || (officer && (policy.scope === 'group' || /^to-truong/.test(policy.key || '')))) && (!groupId || !assigned || !isSameGroup(assigned.group, groupId))) fail('Phân công tổ chưa khớp với danh sách lớp. GVCN cần kiểm tra lại tổ và học sinh được phân công.', 'ASSIGNMENT_CHANGED');
       if (officer && !['all','group'].includes(policy.scope)) fail('Phạm vi phân quyền chưa hợp lệ.');
       const tabs = officer ? (policy.canAccessTabs || []) : ['truc-nhat','tich-diem','bao-cao'];
       const categories = officer ? (Array.isArray(policy.allowedCategories) && policy.allowedCategories.length ? policy.allowedCategories : ['Học tập','Phong trào','Kỷ luật','Chuyên cần','Nề nếp']) : ['Học tập','Phong trào','Kỷ luật','Chuyên cần','Nề nếp'];
@@ -118,11 +131,11 @@ export function createDeputyService({ db, auth, appId, classId, clock = Date.now
           else if (officer) projection.students.forEach(s => { s.history = s.history.filter(h => categories.includes(h.category)); });
           if (!permissions.roster && !permissions.scoresView && !permissions.attendanceView && !permissions.dutyView && !permissions.grades && !permissions.points) projection.students = [];
           projection.students.forEach(s => {
-            const original = state.students.find(p=>String(p.id)===s.id);
-            s.history.forEach(h=>{
-              const record = original.history.find(r=>r.id===h.id);
+            const original = state.students?.find(p=>String(p.id)===s.id);
+            (s.history || []).forEach(h=>{
+              const record = (original?.history || []).find(r=>String(r.id)===String(h.id));
               h.version = scoreVersion(record);
-              h.canEdit = Boolean(permissions.scoreEdit && record.source==='officer-score' && record.createdBy===actor.uid && !record.weeklyResetSettled && !record.approvedBy && historyWeek(record)===weekOf(today));
+              h.canEdit = Boolean(record && permissions.scoreEdit && record.source==='officer-score' && record.createdBy===actor.uid && !record.weeklyResetSettled && !record.approvedBy && historyWeek(record)===weekOf(today));
             });
           });
           projection.students.forEach(s => { if (permissions.attendanceView) s.attendance = state.attendanceRecords?.[today]?.[s.id] || null; });
@@ -146,14 +159,16 @@ export function createDeputyService({ db, auth, appId, classId, clock = Date.now
           return {saved:true};
         }
         const student = state.students.find(s => String(s.id) === String(input.studentId));
-        if (!student || (groupId && String(student.group) !== groupId)) fail();
+        if (!student || (groupId && !isSameGroup(student.group, groupId))) fail();
         const week = weekOf(today);
         if (state.weeklyCompetitionArchives?.[week] || (state.weeklyCompetition?.start && week < state.weeklyCompetition.start)) fail('Tuần này đã chốt, không thể thay đổi điểm.');
         applyAcademicScore(state, student, input, stamp, assigned.name || member.displayName, applyDelta);
-        tx.update(stateRef, {state, scoreRevision:(Number(ss.data().scoreRevision)||0)+1, updatedAt:stamp, updatedBy:actor.uid});
+        const nextScoreRevision = (Number(ss.data()?.scoreRevision) || 0) + 1;
+        tx.update(stateRef, {state, scoreRevision: nextScoreRevision, updatedAt:stamp, updatedBy:actor.uid});
+        tx.set(cls.collection('permissionSignals').doc('current'), { revision: nextScoreRevision, updatedAt: stamp });
         tx.set(cls.collection('studentViews').doc(String(student.id)), {state:studentView(state,student), updatedAt:stamp, updatedBy:actor.uid});
         tx.set(receiptRef, {actor:actor.uid, studentId:String(student.id), subjectId:input.subjectId, semester:input.semester, sequence:Number(input.sequence), score:input.score, at:stamp});
-        return {saved:true};
+        return {saved:true, scoreRevision: nextScoreRevision};
       }
       if (!['score', 'score-edit', 'duty', 'attendance'].includes(input.action)) fail();
       if (input.action === 'score' && !permissions.points) fail();
@@ -162,7 +177,7 @@ export function createDeputyService({ db, auth, appId, classId, clock = Date.now
       if (input.action === 'attendance' && !permissions.attendance) fail();
       const studentId = String(input.studentId || '');
       const student = state.students.find(s => String(s.id) === studentId);
-      if (!student || (groupId && String(student.group) !== groupId)) fail();
+      if (!student || (groupId && !isSameGroup(student.group, groupId))) fail();
       const reason = input.action === 'attendance' ? 'Điểm danh' : String(input.reason || '').trim();
       if (!reason || reason.length > 500) throw new AccessError(400, 'Nhập lý do từ 1 đến 500 ký tự.');
       let week = weekOf(today);
@@ -233,11 +248,14 @@ export function createDeputyService({ db, auth, appId, classId, clock = Date.now
             rating, reason, points, updatedBy: actor.uid, updatedAt: stamp };
         }
       }
-      tx.update(stateRef, { state, scoreRevision: (Number(ss.data().scoreRevision) || 0) + 1, updatedAt: stamp, updatedBy: actor.uid });
+      const nextScoreRevision = (Number(ss.data()?.scoreRevision) || 0) + 1;
+      tx.update(stateRef, { state, scoreRevision: nextScoreRevision, updatedAt: stamp, updatedBy: actor.uid });
+      tx.set(cls.collection('permissionSignals').doc('current'), { revision: nextScoreRevision, updatedAt: stamp });
       tx.set(cls.collection('studentViews').doc(studentId), { state: studentView(state, student), updatedAt: stamp, updatedBy: actor.uid });
       tx.set(cls.collection('auditLogs').doc(), { actorUid: actor.uid, actorRole: member.role,
         action: `deputy.${input.action}`, studentId, createdAt: stamp, summary: reason, level: 'info' });
-      return { saved: true };
+      return { saved: true, scoreRevision: nextScoreRevision };
     });
   };
 }
+

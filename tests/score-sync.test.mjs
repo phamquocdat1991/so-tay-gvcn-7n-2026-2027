@@ -61,3 +61,27 @@ test('retry must not ignore history array order or unrelated state changes',asyn
   await assert.rejects(f.services.saveState(next),e=>e.code==='cloud/revision-conflict');assert.equal(f.writes.length,0);
  }
 });
+
+test('saveStateTransactional auto-merges deputy score updates when teacher expectedRevision is behind', async () => {
+  const serverState = {
+    students: [{ id: 1, points: 12, stars: 12, history: [{ id: 'deputy-1', points: 2, actualStars: 2 }] }]
+  };
+  const teacherClientState = {
+    students: [{ id: 1, points: 15, stars: 15, history: [{ id: 'teacher-1', points: 5, actualStars: 5 }] }]
+  };
+  const f = fixture({ state: serverState, scoreRevision: 3 }, 2);
+  f.context.window.cloudMembership = { role: 'gvcn' };
+  f.context.permissionSignalRef = 'signal';
+  const result = await f.services.saveStateTransactional(teacherClientState, { expectedRevision: 2 });
+  assert.equal(result.scoreRevision, 4);
+  assert.equal(result.merged, true);
+  const written = f.writes.find(w => w.ref === 'state').value;
+  assert.equal(written.scoreRevision, 4);
+  const student = written.state.students[0];
+  assert.equal(student.points, 17);
+  assert.equal(student.stars, 17);
+  assert.equal(student.history.length, 2);
+  assert.equal(student.history[0].id, 'deputy-1');
+  assert.equal(student.history[1].id, 'teacher-1');
+});
+

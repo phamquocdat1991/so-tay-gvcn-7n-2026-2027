@@ -15,7 +15,7 @@ test('production build contains public configuration but no server code or secre
       FIREBASE_SERVICE_ACCOUNT_JSON: '{"private_key":"TEST_PRIVATE_KEY_DO_NOT_PUBLISH"}' } });
   assert.equal(result.status, 0, result.stderr);
   const files = readdirSync(path.join(root, 'dist'));
-  assert.deepEqual(files.sort(), ['access-manager.js', 'deputy-permissions.js', 'firebase-secure.js', 'index.html', 'metadata.json', 'runtime-config.js', 'to-pho.html', 'to-pho.js']);
+  assert.deepEqual(files.sort(), ['access-manager.js', 'class-dashboard.css', 'class-dashboard.js', 'deputy-dashboard.css', 'deputy-permissions.js', 'firebase-secure.js', 'index.html', 'metadata.json', 'runtime-config.js', 'to-pho.html', 'to-pho.js']);
   const contents = files.map(name => readFileSync(path.join(root, 'dist', name), 'utf8')).join('\n');
   assert(!contents.includes('TEST_PRIVATE_SENTINEL_DO_NOT_PUBLISH'));
   assert(!contents.includes('TEST_PRIVATE_KEY_DO_NOT_PUBLISH'));

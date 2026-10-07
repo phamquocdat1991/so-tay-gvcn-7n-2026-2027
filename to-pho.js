@@ -282,7 +282,7 @@ window.openDeputyWorkspace = async function() {
     const discardedDraft = permissionEvent && dirty;
     recoveryActive = false; sessionBlocked = false; el('recovery').hidden = true; el('recovery').innerHTML = '';
     data = next;
-    selectedRoleKey = data.selectedRoleKey || '';
+    selectedRoleKey = data.selectedRoleKey || selectedRoleKey || '';
     if (data.identity) {
       root.querySelector('h1').textContent = `${data.identity.name} • ${data.identity.title}`;
       el('bcs-avatar').textContent = String(data.identity.name || 'BC').trim().split(/\s+/).slice(-2).map(s=>s[0]).join('');
