@@ -6021,6 +6021,15 @@ html[data-ui-density] button svg {
             }
         }
 
+        function sameCloudStateSignature(left, right) {
+            if (left === right) return true;
+            const canonical = value => Array.isArray(value) ? value.map(canonical)
+                : value && typeof value === 'object'
+                    ? Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value;
+            try { return JSON.stringify(canonical(JSON.parse(left))) === JSON.stringify(canonical(JSON.parse(right))); }
+            catch (_) { return false; }
+        }
+
         function scheduleDraftAutoSync(reason = 'background', delay = 120) {
             if (!window.secureMode || !window.cloudUser || !window.cloudMembership) return false;
             if (['phhs','bgh'].includes(currentLoginRole) || navigator.onLine === false) return false;
@@ -6053,7 +6062,7 @@ html[data-ui-density] button svg {
 
             // Nếu đã biết snapshot server, chỉ tự ghi khi draft được tạo từ đúng base đó.
             // Trường hợp có thay đổi từ thiết bị khác được giữ cho luồng conflict, không ghi đè ngầm.
-            if (pending.base && lastSavedStateSignature && pending.base !== lastSavedStateSignature) {
+            if (pending.base && lastSavedStateSignature && !sameCloudStateSignature(pending.base, lastSavedStateSignature)) {
                 window.syncRemoteConflict = true;
                 setRealtimeSyncStatus('conflict', 'Máy chủ đã thay đổi từ lúc bản nháp được tạo; cần đối chiếu trước khi ghi đè.');
                 return false;
@@ -6742,7 +6751,7 @@ html[data-ui-density] button svg {
 
                             // Firebase đã chứa đúng bản pending: coi đây là ACK. Không khôi phục lại
                             // bản nháp rồi tạo vòng lặp "Đã khôi phục... → Thử lại → snapshot → khôi phục".
-                            if (remoteSignature && pendingSignature && remoteSignature === pendingSignature) {
+                            if (remoteSignature && pendingSignature && sameCloudStateSignature(remoteSignature, pendingSignature)) {
                                 window.pendingSyncState = null;
                                 window.pendingDraftDurable = false;
                                 window.pendingDraftStorageMode = null;
@@ -6768,7 +6777,7 @@ html[data-ui-density] button svg {
                                 applyRemoteCloudEnvelope(envelope, { source: 'invalid-pending-fallback' });
                                 return;
                             }
-                            window.syncRemoteConflict = remoteSignature !== pending.base;
+                            window.syncRemoteConflict = !sameCloudStateSignature(remoteSignature, pending.base);
                             if (window.syncRemoteConflict && envelope.revision) window.scoreSyncConflict = {state:remoteState,revision:envelope.revision};
                             applyStateDefaults();
                             isDataLoaded = true; renderLayout();
@@ -6933,6 +6942,12 @@ html[data-ui-density] button svg {
                         return false;
                     }
                     await saveCloudSnapshot(safeState);
+                    // A later edit may have been queued while this snapshot was in flight.
+                    // Persist its new confirmed base before another server snapshot or reload.
+                    lastSavedStateSignature = nextSignature;
+                    if (queuedSaveContext && window.pendingSyncState) {
+                        retainPendingState(window.pendingSyncState.serialized, nextSignature, { quiet: true });
+                    }
                     if (!queuedSaveContext) {
                         window.pendingSyncState = null; window.syncRemoteConflict = false;
                         storageRemove(pendingStorageKey()); storageRemove(pendingStorageKey(), true);
@@ -6950,7 +6965,7 @@ html[data-ui-density] button svg {
                     lastSavedStateSignature = nextSignature;
                     if (undoEntry) window.undoStack.unshift(undoEntry);
                     window.undoStack = window.undoStack.slice(0, 20);
-                    cleanupTransientAppStorageAfterCloudAck({ clearPending: true });
+                    cleanupTransientAppStorageAfterCloudAck({ clearPending: !queuedSaveContext });
                     try { await recordAudit(
                         auditContext?.action || 'data.update',
                         auditContext?.summary || 'Cập nhật dữ liệu lớp',

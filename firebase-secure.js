@@ -202,6 +202,14 @@ if (!window.secureMode) {
         return runTransaction(db, async transaction => {
           const current = await transaction.get(stateRef);
           const scoreRevision = Number(current.data()?.scoreRevision) || 0;
+          // A retry after a lost response is already successful when the complete
+          // server state matches. Preserve array order, but ignore object key order.
+          const canonical = value => Array.isArray(value) ? value.map(canonical)
+            : value && typeof value === 'object'
+              ? Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value;
+          if (current.data()?.state && JSON.stringify(canonical(current.data().state)) === JSON.stringify(canonical(state))) {
+            return { scoreRevision, alreadyCommitted: true };
+          }
           if (scoreRevision !== expectedRevision) {
             window.scoreSyncConflict = { state: current.data().state, revision: scoreRevision };
             const error = new Error('Điểm vừa được cập nhật từ thiết bị khác. Bản nhập được giữ lại; hãy tải dữ liệu mới trước khi lưu để tránh ghi đè điểm.');
