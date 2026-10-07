@@ -60,7 +60,7 @@ window.openDeputyWorkspace = async function() {
   root.addEventListener('change', () => { dirty = true; });
   const message = (text = '', error = false) => { el('message').textContent = text; el('message').classList.toggle('error', error); };
   const api = body => window.cloudServices.deputy({ ...body, ...(selectedRoleKey ? {roleKey:selectedRoleKey} : {}) });
-  function showRecovery(error) {
+  function showRecovery(error, savedMessage = '') {
     if (!root.isConnected || leaving) return;
     recoveryActive = true;
     const code = error.code || '';
@@ -73,12 +73,12 @@ window.openDeputyWorkspace = async function() {
       el('bcs-avatar').textContent = 'BC'; el('bcs-welcome').textContent = 'Chào mừng Ban cán sự lớp 7N!';
       el('bcs-scope').textContent = 'Đang chờ phân công hợp lệ';
     }
-    message();
+    message(savedMessage);
     el('recovery').hidden = false;
     el('recovery').innerHTML = `<section class="recovery-card" role="alert" aria-labelledby="recovery-title">
-      <h2 id="recovery-title">${session ? 'Cần đăng nhập lại' : assignment ? 'Đang cập nhật phân công của bạn' : 'Chưa tải được dữ liệu'}</h2>
+      <h2 id="recovery-title">${session ? 'Cần đăng nhập lại' : assignment ? 'Đang cập nhật phân công của bạn' : savedMessage ? 'Điểm đã lưu, chưa tải lại được dữ liệu' : 'Chưa tải được dữ liệu'}</h2>
       <p>${assignment ? 'Chức vụ của bạn đang được cập nhật. Trang sẽ tự chuyển khi nhận được phân công hợp lệ từ GVCN.' : esc(error.message || 'Kết nối tạm gián đoạn. Bạn có thể làm mới dữ liệu hoặc về màn hình đăng nhập.')}</p>
-      <p>${session ? 'Phiên đăng nhập đã hết hiệu lực hoặc tài khoản đã được khóa/đổi mật khẩu. Hãy đăng nhập lại bằng tài khoản riêng.' : assignment ? 'Bạn có thể ở lại trang này để nhận quyền mới tự động, làm mới dữ liệu hoặc thoát về trang đăng nhập.' : 'Nếu vừa bấm lưu, hãy kiểm tra dữ liệu sau khi kết nối lại trước khi gửi lần nữa.'}</p>
+      <p>${savedMessage ? 'Máy chủ đã xác nhận lưu điểm. Không nhập lại bản ghi này; bấm Làm mới dữ liệu để xem điểm và lịch sử mới nhất.' : session ? 'Phiên đăng nhập đã hết hiệu lực hoặc tài khoản đã được khóa/đổi mật khẩu. Hãy đăng nhập lại bằng tài khoản riêng.' : assignment ? 'Bạn có thể ở lại trang này để nhận quyền mới tự động, làm mới dữ liệu hoặc thoát về trang đăng nhập.' : 'Nếu vừa bấm lưu, hãy kiểm tra dữ liệu sau khi kết nối lại trước khi gửi lần nữa.'}</p>
       <div class="bcs-cards"><button class="bcs-card bcs-mint" data-action="refresh">${icon('attendance')}<strong>Làm mới dữ liệu</strong><b>↻</b><small>Đọc lại phiên và phân công mới</small></button><button class="bcs-card bcs-lavender" data-action="login">${icon('roster')}<strong>Đăng nhập lại</strong><b>→</b><small>Dùng tài khoản riêng của bạn</small></button><button class="bcs-card bcs-pink" data-action="home">${icon('grades')}<strong>Về trang đăng nhập</strong><b>⌂</b><small>Thoát an toàn khỏi phiên hiện tại</small></button></div>
     </section>`;
   }
@@ -170,7 +170,20 @@ window.openDeputyWorkspace = async function() {
       // The student selector is locked while editing; use the original record binding.
       const values = Object.fromEntries(new FormData(form));
       if (form.dataset.studentId) values.studentId = form.dataset.studentId;
-      run(async () => { await api({action:form.dataset.historyId?'score-edit':'score',...values,requestId:form.dataset.request || safeUuid(),historyId:form.dataset.historyId,expectedRecord:form.dataset.version});await load();message('Đã lưu điểm trực tiếp và đồng bộ dữ liệu.'); });
+      run(async () => {
+        await api({action:form.dataset.historyId?'score-edit':'score',...values,requestId:form.dataset.request || safeUuid(),historyId:form.dataset.historyId,expectedRecord:form.dataset.version});
+        if (!root.isConnected || leaving) return;
+        // A confirmed write must not become an unsent draft when the following read fails.
+        dirty = false;
+        try {
+          await load();
+          if (root.isConnected && !leaving) message('Đã lưu điểm trực tiếp và đồng bộ dữ liệu.');
+        } catch (error) {
+          if (!root.isConnected || leaving) return;
+          renderDeputy();
+          showRecovery(error, 'Đã lưu điểm trực tiếp. Đang chờ tải lại dữ liệu mới nhất.');
+        }
+      });
     };
     if (data.permissions?.attendanceView) {
       const section=document.createElement('section');
