@@ -56,6 +56,36 @@ window.openDeputyWorkspace = async function() {
   const ratings = { good:'Tốt (+5)', done:'Đạt (0)', incomplete:'Chưa đạt (-3)', absent:'Nghỉ trực (-5)' };
   const days = { mon:'Thứ Hai', tue:'Thứ Ba', wed:'Thứ Tư', thu:'Thứ Năm', fri:'Thứ Sáu', sat:'Thứ Bảy' };
   let data, rows = [], working = false, dirty = false, recoveryActive = false, sessionBlocked = false, leaving = false, selectedRoleKey = '', selectedPanel = '', permissionRefreshQueued = false, permissionRefreshTimer = null;
+  const runtime = window.__GVCN_RUNTIME_CONFIG__ || {};
+  const draftKey = ['gvcn-score-draft', runtime.appId || 'so-tay-gvcn-7n', runtime.classId || '7n', window.cloudUser.uid].join(':');
+  let draftStorage;
+  try { draftStorage = window.sessionStorage; } catch (_) {}
+  let scoreDraft = null;
+  try { scoreDraft = JSON.parse(draftStorage?.getItem(draftKey) || 'null'); } catch (_) {}
+  function rememberScore(payload) {
+    scoreDraft = {...payload};
+    try { draftStorage?.setItem(draftKey, JSON.stringify(scoreDraft)); } catch (_) {}
+  }
+  function clearScoreDraft() {
+    scoreDraft = null;
+    try { draftStorage?.removeItem(draftKey); } catch (_) {}
+  }
+  function restoreScoreDraft() {
+    const form = el('score-form');
+    if (!scoreDraft || !form) return;
+    // A draft can never confer permissions, change scope or reuse another user's record.
+    if ((scoreDraft.roleKey || '') !== selectedRoleKey ||
+        !data.permissions?.points || scoreDraft.action !== 'score' ||
+        !data.students.some(s => s.id === scoreDraft.studentId) ||
+        !(data.permissions.categories || []).includes(scoreDraft.category) ||
+        !/^[a-zA-Z0-9_-]{16,80}$/.test(scoreDraft.requestId || '')) return;
+    for (const key of ['studentId','points','category','reason']) form.querySelector(`[name=${key}]`).value = scoreDraft[key];
+    form.dataset.request = scoreDraft.requestId;
+    dirty = true;
+    showPanel('points');
+    message('Đã khôi phục lượt nhập chưa xác nhận. Kiểm tra lịch sử; gửi lại cùng nội dung sẽ không cộng/trừ lần hai.');
+  }
+
   root.addEventListener('input', () => { dirty = true; });
   root.addEventListener('change', () => { dirty = true; });
   const message = (text = '', error = false) => { el('message').textContent = text; el('message').classList.toggle('error', error); };
@@ -111,7 +141,7 @@ window.openDeputyWorkspace = async function() {
     if (!root.isConnected || leaving) return;
     if (fresh.role !== member.role) { window.startApp(); return; }
     selectedRoleKey = '';
-    await load();
+    await load(false, true);
     if (root.isConnected) message('Đã làm mới phiên đăng nhập và dữ liệu.');
   }
   const icon = window.ClassDashboard.icon;
@@ -152,7 +182,7 @@ window.openDeputyWorkspace = async function() {
       event.stopPropagation();
       if (working || dirty && !confirm('Đổi chức vụ sẽ bỏ nội dung biểu mẫu chưa gửi. Tiếp tục?')) {picker.value=selectedRoleKey;return;}
       selectedRoleKey=picker.value;selectedPanel='';
-      void run(load);
+      void run(() => load(false, true));
     };
   }
   function renderDeputy() {
@@ -170,19 +200,23 @@ window.openDeputyWorkspace = async function() {
       // The student selector is locked while editing; use the original record binding.
       const values = Object.fromEntries(new FormData(form));
       if (form.dataset.studentId) values.studentId = form.dataset.studentId;
-      run(async () => {
-        await api({action:form.dataset.historyId?'score-edit':'score',...values,requestId:form.dataset.request || safeUuid(),historyId:form.dataset.historyId,expectedRecord:form.dataset.version});
+      const payload = {action:form.dataset.historyId?'score-edit':'score',...values,requestId:form.dataset.request || safeUuid(),historyId:form.dataset.historyId,expectedRecord:form.dataset.version,roleKey:selectedRoleKey};
+      rememberScore(payload);
+      void run(async () => {
+        const result = await api(payload);
+        if (result?.saved !== true) throw new Error('Máy chủ chưa xác nhận lưu điểm. Nội dung nhập được giữ lại; kiểm tra lịch sử trước khi gửi tiếp.');
         if (!root.isConnected || leaving) return;
-        // A confirmed write must not become an unsent draft when the following read fails.
+        clearScoreDraft();
         dirty = false;
-        try {
-          await load();
-          if (root.isConnected && !leaving) message('Đã lưu điểm trực tiếp và đồng bộ dữ liệu.');
-        } catch (error) {
+        // Confirming the write and refreshing the view are separate outcomes.
+        try { await load(); }
+        catch (error) {
           if (!root.isConnected || leaving) return;
           renderDeputy();
-          showRecovery(error, 'Đã lưu điểm trực tiếp. Đang chờ tải lại dữ liệu mới nhất.');
+          showRecovery(error, 'Đã lưu điểm trực tiếp. Máy chủ đã lưu điểm, nhưng chưa tải được danh sách mới. Bấm Làm mới dữ liệu.');
+          return;
         }
+        message('Đã lưu điểm trực tiếp và đồng bộ dữ liệu.');
       });
     };
     if (data.permissions?.attendanceView) {
@@ -230,7 +264,7 @@ window.openDeputyWorkspace = async function() {
     });
   }
 
-  async function load(permissionEvent = false) {
+  async function load(permissionEvent = false, discardScoreDraft = false) {
     let next;
     try { next = await api({ action:'view' }); }
     catch (error) {
@@ -239,6 +273,7 @@ window.openDeputyWorkspace = async function() {
       next = await api({ action:'view' });
     }
     if (!root.isConnected || leaving) return;
+    if (discardScoreDraft) clearScoreDraft();
     const accessShape = d => JSON.stringify([d?.selectedRoleKey,d?.groupId,d?.permissions,d?.availableRoles,(d?.students || []).map(s=>s.id)]);
     if (permissionEvent && dirty && data && accessShape(data) === accessShape(next)) {
       recoveryActive = false; sessionBlocked = false; el('recovery').hidden = true; el('recovery').innerHTML = '';
@@ -257,6 +292,7 @@ window.openDeputyWorkspace = async function() {
     dirty = false;
     renderDeputy();
     message(discardedDraft ? 'Quyền đã thay đổi. Biểu mẫu chưa gửi đã được đóng để tránh thao tác sai phạm vi.' : '');
+    restoreScoreDraft();
   }
   const handleAction = event => {
     const button = event.target.closest('button[data-action]'); if (!button) return;

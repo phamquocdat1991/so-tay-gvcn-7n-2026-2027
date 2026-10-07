@@ -68,7 +68,7 @@ test('unrelated permission signal preserves the selected role and unsent form',a
 test('direct score form waits for server confirmation and uses no approval controls or tables',async()=>{
  const requests=[];let release;
  const projected={...view,permissions:{points:true,scoresView:true,categories:['Nề nếp']},students:[{id:'1',name:'Bạn A',group:'Tổ 1',points:10,history:[]}]};
- const f=setup({deputy:async body=>{requests.push(body);if(body.action==='score')await new Promise(r=>release=r);return projected;}});
+ const f=setup({deputy:async body=>{requests.push(body);if(body.action==='score'){await new Promise(r=>release=r);return {saved:true};}return projected;}});
  await f.open();assert.equal(f.document.querySelector('table'),null);assert.equal(f.document.querySelector('[data-action=approve]'),null);assert.equal(f.document.querySelector('[data-panel-link=proposals]'),null);
  assert(f.document.querySelector('.dashboard-card'));assert(f.document.querySelector('.overview-hero-card'));
  const form=f.document.querySelector('#score-form');form.querySelector('[name=reason]').value='Hoàn thành tốt nhiệm vụ';
@@ -84,7 +84,7 @@ test('failed direct save keeps form and never reports saved',async()=>{
 test('ambiguous network response keeps request identity through auto-refresh and retry; double submit is ignored',async()=>{
  const requests=[];let release,attempt=0;
  const projected={...view,permissions:{points:true,categories:['Nề nếp']},students:[{id:'1',name:'Bạn A',history:[]}]};
- const f=setup({deputy:async body=>{if(body.action==='score'){requests.push(body);attempt++;if(attempt===1){await new Promise(r=>release=r);throw new Error('Mất phản hồi sau khi lưu');}}return projected;}});
+ const f=setup({deputy:async body=>{if(body.action==='score'){requests.push(body);attempt++;if(attempt===1){await new Promise(r=>release=r);throw new Error('Mất phản hồi sau khi lưu');}return {saved:true};}return projected;}});
  await f.open();const form=f.document.querySelector('#score-form');form.querySelector('[name=reason]').value='Nhận xét';
  const submit=()=>form.onsubmit({preventDefault(){},target:form});submit();submit();await tick();assert.equal(requests.length,1);assert.equal(form.querySelector('[name=reason]').disabled,true);
  release();await tick();assert.equal(form.querySelector('[name=reason]').disabled,false);

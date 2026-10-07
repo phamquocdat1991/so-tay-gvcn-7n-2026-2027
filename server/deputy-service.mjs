@@ -194,7 +194,7 @@ export function createDeputyService({ db, auth, appId, classId, clock = Date.now
         if (!['string','number'].includes(typeof input.points)) throw new AccessError(400,'Điểm phải là một số hợp lệ.');
         let points = Number(input.points);
         if (!Number.isInteger(points) || !points || Math.abs(points) > 100) throw new AccessError(400, 'Điểm phải là số nguyên khác 0, từ -100 đến 100.');
-        if (/giơ tay phát biểu/i.test(reason)) points = 2;
+        if (points > 0 && /^giơ tay phát biểu(?:\s*\(.*\))?$/i.test(reason)) points = 2;
         const category = targetCat;
         let entryId = `score:${input.requestId}`, createdAt = stamp, editRevision = 0;
         if (input.action === 'score-edit') {
