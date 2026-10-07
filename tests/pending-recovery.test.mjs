@@ -8,6 +8,7 @@ function setup(){
  const server={students:[{id:1,points:10}]},draft={students:[{id:1,points:12}]};
  const c=vm.createContext({window:{secureMode:true,useCloud:true,cloudUser:{uid:'test'},cloudMembership:{role:'gvcn'},cloudStateScoreRevision:0,pendingSyncState:{owner:'test',base:JSON.stringify(server),serialized:JSON.stringify(draft)},cloudServices:{}},state:{},currentLoginRole:'gvcn',cloudStateUnsubscribe:null,isDataLoaded:false,isAuthenticated:true,saveInProgress:false,lastSavedStateSignature:'',queuedSaveContext:null,console:{warn(){},error(){}},navigator:{onLine:true},document:{getElementById:()=>null},enforceAuthenticatedRoleContext:()=>({ok:true}),setRealtimeSyncStatus:()=>{},renderCloudLoadingView:()=>{},resetCloudSubscriptionRetry:()=>{},pendingStorageKey:()=>'test',getCloudSafeState:s=>s,cloudSnapshotEnvelope:s=>({data:s.data(),revision:s.data().scoreRevision,fromCache:!!s.metadata?.fromCache}),applyStateDefaults:()=>{},renderLayout:()=>{},syncNotice:()=>{},scheduleDraftAutoSync:()=>{},readPendingDraftForCurrentUser:()=>c.window.pendingSyncState});
  let listener;c.window.cloudServices.subscribeState=fn=>{listener=fn;return ()=>{};};
+ vm.runInContext(slice('        function sameCloudStateSignature(', '        function scheduleDraftAutoSync('),c);
  vm.runInContext(slice('        window.startApp = function()', '\n        function fallbackLoad'),c);
  return {c,server,draft,run:async(fromCache=false)=>{c.window.startApp();await listener({exists:()=>true,data:()=>({state:server,scoreRevision:7}),metadata:{fromCache}});}};
 }
@@ -35,4 +36,22 @@ test('teacher remark waits for the save outcome before displaying a result',asyn
  const c=vm.createContext({window:{},state:{students:[{id:1,name:'Test pupil'}],admin:{}},currentLoginRole:'gvcn',reportSummarySemester:'HK1',document:{getElementById:()=>({value:'Nhận xét thử'})},getReportRemarkKey:()=> '1_HK1',showToast:()=>assert.fail('Premature toast'),saveData:()=>new Promise(r=>resolve=r),showPersistenceOutcomeToast:()=>resultCount++});
  vm.runInContext(slice('window.saveTeacherRemark =', '\nfunction renderChiTietBaoCaoContent'),c);
  const pending=c.window.saveTeacherRemark('1');assert.equal(resultCount,0);resolve(false);await pending;assert.equal(resultCount,1);
+});
+
+test('restored draft accepts confirmed base with reordered object keys',async()=>{
+ const f=setup();f.c.window.pendingSyncState.base=JSON.stringify({students:[{points:10,id:1}]});
+ await f.run();assert.equal(f.c.window.syncRemoteConflict,false);assert.equal(f.c.window.cloudStateScoreRevision,7);
+});
+test('queued edit survives first acknowledgement with a durable updated base',async()=>{
+ let ack;const durable={};const scheduled=[];
+ const base=JSON.stringify({students:[{id:1,points:10}]});
+ const c=vm.createContext({window:{secureMode:true,cloudUser:{uid:'test'},cloudMembership:{role:'gvcn'},cloudServices:{},undoStack:[]},state:{students:[{id:1,points:12}]},currentLoginRole:'gvcn',lastSavedStateSignature:base,saveInProgress:false,queuedSaveContext:null,navigator:{onLine:true},console,
+ enforceAuthenticatedRoleContext:()=>({ok:true}),setLastSaveOutcome:()=>{},getCloudSafeState:()=>JSON.parse(JSON.stringify(c.state)),
+ persistMutationSnapshotBeforeCloud:(state,serialized,base)=>{c.retainPendingState(serialized,base);return 'local';},
+ retainPendingState:(serialized,base)=>{c.window.pendingSyncState={serialized,base,owner:'test'};Object.assign(durable,c.window.pendingSyncState);},
+ hasCloudWriteApi:()=>true,saveCloudSnapshot:()=>new Promise(r=>ack=r),cleanupTransientAppStorageAfterCloudAck:()=>{},recordAudit:async()=>{},maybeCreateAutoBackup:async()=>{},dispatchPersistenceStateEvent:()=>{},clearTimeout:()=>{},setTimeout:fn=>{scheduled.push(fn);return 0;},syncNotice:()=>{},resetCloudRetryState:()=>{}});
+ vm.runInContext(slice('        async function saveData(', '\n        function applyStateDefaults'),c);
+ const first=c.saveData({skipUndo:true});c.state.students[0].points=15;await c.saveData({skipUndo:true});ack();await first;
+ assert.equal(JSON.parse(durable.base).students[0].points,12);assert.equal(JSON.parse(durable.serialized).students[0].points,15);
+ assert.equal(c.window.pendingSyncState.base,c.lastSavedStateSignature);assert.equal(scheduled.length,1);
 });

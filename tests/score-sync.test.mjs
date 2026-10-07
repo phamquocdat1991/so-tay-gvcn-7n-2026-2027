@@ -42,3 +42,22 @@ test('teacher state write publishes a revision-only permission signal in the sam
  const f=fixture({state:{},scoreRevision:2},2);f.context.window.cloudMembership={role:'gvcn'};f.context.permissionSignalRef='signal';
  await f.services.saveState({students:[]});const signal=f.writes.find(w=>w.ref==='signal');assert.equal(signal.value.revision,3);assert.deepEqual(Object.keys(signal.value).sort(),['revision','updatedAt']);
 });
+
+test('retry after lost acknowledgement accepts identical state without another revision',async()=>{
+ const state={students:[{id:1,points:12,history:[{id:'saved',points:2}]}]};
+ const f=fixture({state,scoreRevision:4},3);
+ const result=await f.services.saveState(state);
+ assert.equal(result.scoreRevision,4);assert.equal(result.alreadyCommitted,true);assert.equal(f.writes.length,0);
+});
+test('retry compares nested object content without depending on key order',async()=>{
+ const f=fixture({state:{students:[{points:12,id:1}],theme:{title:'A',month:'B'}},scoreRevision:4},3);
+ const result=await f.services.saveState({theme:{month:'B',title:'A'},students:[{id:1,points:12}]});
+ assert.equal(result.alreadyCommitted,true);assert.equal(f.writes.length,0);
+});
+test('retry must not ignore history array order or unrelated state changes',async()=>{
+ const state={students:[{id:1,points:12,history:[{id:'a'},{id:'b'}]}],note:'new'};
+ for(const next of [{...state,note:'old'},{...state,students:[{id:1,points:12,history:[{id:'b'},{id:'a'}]}]}]){
+  const f=fixture({state,scoreRevision:4},3);
+  await assert.rejects(f.services.saveState(next),e=>e.code==='cloud/revision-conflict');assert.equal(f.writes.length,0);
+ }
+});
