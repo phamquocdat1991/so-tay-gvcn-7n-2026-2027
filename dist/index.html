@@ -936,7 +936,7 @@
 }
 
 #main-content .student-card-menu {
-    position: static;
+    position: relative;
     flex: 0 0 auto;
 }
 
@@ -961,6 +961,14 @@
 #main-content .student-directory-card button:focus-visible {
     outline: 2px solid #4f46e5;
     outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+    #main-content .student-directory-card .student-card-action,
+    #main-content .student-directory-card .student-card-profile-btn,
+    #main-content .student-directory-card .student-menu-button {
+        min-height: 40px;
+    }
 }
 
 @media (max-width: 640px), (any-pointer: coarse) {
